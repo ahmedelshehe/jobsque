@@ -7,6 +7,7 @@ enum MyCacheKeys {
   address,
   phoneNumber,
   language,
+  myToken,
   // Notifications Settings Keys
   jobSearchAlertSetting,
   jobApplicationUpdateSetting,
@@ -16,5 +17,5 @@ enum MyCacheKeys {
   showProfileSetting,
   allMessagesSetting,
   messageNudgesSetting,
-  twoStepVerification
+  twoStepVerification, myID,
 }

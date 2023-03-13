@@ -5,6 +5,7 @@ import 'package:jobsque/presentation/app_router.dart';
 import 'package:sizer/sizer.dart';
 
 import 'business_logic/apply_job/apply_job_cubit.dart';
+import 'business_logic/auth/auth_cubit.dart';
 import 'business_logic/global/global_cubit.dart';
 import 'business_logic/job_details/job_details_cubit.dart';
 import 'business_logic/saved_jobs/saved_jobs_cubit.dart';
@@ -33,6 +34,7 @@ class MyApp extends StatelessWidget {
         BlocProvider(lazy:true,create: (context) => ApplyJobCubit(),),
         BlocProvider(create: (context) => GlobalCubit(),),
         BlocProvider(lazy:true,create: (context) => SavedJobsCubit(),),
+        BlocProvider(create: (context) => AuthCubit(),),
       ],
       child: Sizer(
           builder: (context, orientation, deviceType) {

@@ -66,7 +66,9 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
                     width: 22.w,
                   ),
                   DefaultTextButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.of(context).pushNamedAndRemoveUntil(screens.loginScreen, (route) => false);
+                    },
                     child: DefaultText(
                       text: 'Skip',
                       color: Colors.black,
@@ -106,11 +108,11 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
                           MyCache.putBoolean(key: MyCacheKeys.allMessagesSetting, value: true);
                           MyCache.putBoolean(key: MyCacheKeys.messageNudgesSetting, value: true);
                           MyCache.putBoolean(key: MyCacheKeys.twoStepVerification, value: false);
+                          print(MyCache.getBoolean(key: MyCacheKeys.isOnBoardingViewed));
                           Navigator.of(context).pushNamedAndRemoveUntil(screens.loginScreen, (route) => false);
                         }else {
                           _pageController.nextPage(duration: const Duration(milliseconds: 250),curve: Curves.linear);
                         }
-
                       },
                       child: DefaultText(text:!isLast ?'Next' : 'Get Started',color: Colors.white,),
                     ),

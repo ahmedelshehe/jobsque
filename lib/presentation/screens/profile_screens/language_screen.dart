@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:jobsque/constants/extensions.dart';
 import 'package:jobsque/constants/my_cache_keys.dart';
-import 'package:sizer/sizer.dart';
 
 import '../../../data/local/my_cache.dart';
 import '../../views/profile_screen_views/language_radio_list_tile.dart';

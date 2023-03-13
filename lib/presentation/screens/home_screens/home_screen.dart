@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:jobsque/business_logic/global/global_cubit.dart';
+import 'package:jobsque/constants/my_cache_keys.dart';
+import 'package:jobsque/data/local/my_cache.dart';
 import 'package:sizer/sizer.dart';
 import '../../../constants/colors.dart';
 import '../../../constants/screens.dart';
@@ -36,7 +38,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       DefaultText(
-                        text: 'Hi, Rafi Dian👋',
+                        text: 'Hi, ${MyCache.getString(key: MyCacheKeys.fullName)}👋',
                         fontSize: 20.sp,
                         fontWeight: FontWeight.w500,
                       ),

@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:jobsque/constants/colors.dart';
+import 'package:jobsque/constants/response_codes.dart';
 import 'package:sizer/sizer.dart';
+import '../../../business_logic/auth/auth_cubit.dart';
+import '../../../constants/screens.dart';
 import '../../widgets/default_material_button.dart';
 import '../../widgets/switch_container.dart';
 import '../../widgets/default_text.dart';
@@ -14,13 +18,16 @@ class ChooseLocationScreen extends StatefulWidget {
 
 class _ChooseLocationScreenState extends State<ChooseLocationScreen> {
   late bool remote;
-  List<String> locations =[];
+  late AuthCubit authCubit;
+  List<String> remoteLocations =[];
+  List<String> onSiteLocations =[];
   String codeToFlag(String countryCode){
     return countryCode.toUpperCase().replaceAllMapped(RegExp(r'[A-Z]'),
             (match) => String.fromCharCode(match.group(0)!.codeUnitAt(0)+ 127397));
   }
   @override
   void initState() {
+    authCubit=AuthCubit.get(context);
     remote = true;
     super.initState();
   }
@@ -80,34 +87,66 @@ class _ChooseLocationScreenState extends State<ChooseLocationScreen> {
             child: SingleChildScrollView(
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: Wrap(
-                  spacing: 2.w,
-                  children: countries.map((country){
-                    return FilterChip(
-                      padding:EdgeInsets.symmetric(horizontal: 2.w,vertical: 1.h),
-                      label: DefaultText(text: country['name'],fontSize: 13.sp,fontWeight: FontWeight.w300,),
-                      avatar:ClipOval(child: DefaultText(text: codeToFlag(country['code']),fontSize: 14.sp,)),
-                      selected:locations.contains(country['code']),
-                      selectedColor: selectedTileColor,
-                      backgroundColor: unSelectedTileColor,
-                      showCheckmark: false,
-                      shape:locations.contains(country['code']) ? const StadiumBorder(
-                        side: BorderSide(color: Colors.blueAccent)
-                      ): null,
-                      onSelected: (value) {
-                        setState(() {
-                          if (value) {
-                            if (!locations.contains(country['code'])) {
-                              locations.add(country['code']);
-                            }
-                          } else {
-                            locations.removeWhere((String name) {
-                              return name == country['code'];
+                child: Visibility(
+                  visible: remote,
+                  replacement: Wrap(
+                      spacing: 2.w,
+                      children: countries.map((country){
+                        return FilterChip(
+                          padding:EdgeInsets.symmetric(horizontal: 2.w,vertical: 1.h),
+                          label: DefaultText(text: country['name'],fontSize: 13.sp,fontWeight: FontWeight.w300,),
+                          avatar:ClipOval(child: DefaultText(text: codeToFlag(country['code']),fontSize: 14.sp,)),
+                          selected:onSiteLocations.contains(country['code']),
+                          selectedColor: selectedTileColor,
+                          backgroundColor: unSelectedTileColor,
+                          showCheckmark: false,
+                          shape:onSiteLocations.contains(country['code']) ? const StadiumBorder(
+                              side: BorderSide(color: Colors.blueAccent)
+                          ): null,
+                          onSelected: (value) {
+                            setState(() {
+                              if (value) {
+                                if (!onSiteLocations.contains(country['code'])) {
+                                  onSiteLocations.add(country['code']);
+                                }
+                              } else {
+                                onSiteLocations.removeWhere((String name) {
+                                  return name == country['code'];
+                                });
+                              }
                             });
-                          }
-                        });
-                    },);
-                  }).toList()
+                          },);
+                      }).toList()
+                  ),
+                  child: Wrap(
+                    spacing: 2.w,
+                    children: countries.map((country){
+                      return FilterChip(
+                        padding:EdgeInsets.symmetric(horizontal: 2.w,vertical: 1.h),
+                        label: DefaultText(text: country['name'],fontSize: 13.sp,fontWeight: FontWeight.w300,),
+                        avatar:ClipOval(child: DefaultText(text: codeToFlag(country['code']),fontSize: 14.sp,)),
+                        selected:remoteLocations.contains(country['code']),
+                        selectedColor: selectedTileColor,
+                        backgroundColor: unSelectedTileColor,
+                        showCheckmark: false,
+                        shape:remoteLocations.contains(country['code']) ? const StadiumBorder(
+                          side: BorderSide(color: Colors.blueAccent)
+                        ): null,
+                        onSelected: (value) {
+                          setState(() {
+                            if (value) {
+                              if (!remoteLocations.contains(country['code'])) {
+                                remoteLocations.add(country['code']);
+                              }
+                            } else {
+                              remoteLocations.removeWhere((String name) {
+                                return name == country['code'];
+                              });
+                            }
+                          });
+                      },);
+                    }).toList()
+                  ),
                 ),
               ),
             ),
@@ -115,7 +154,39 @@ class _ChooseLocationScreenState extends State<ChooseLocationScreen> {
           Padding(
             padding: EdgeInsets.only(top: 8.h, right: 4.w, left: 4.w),
             child: DefaultMaterialButton(
-              onPressed: () {},
+              onPressed: () async{
+                if(remoteLocations.isNotEmpty && onSiteLocations.isNotEmpty){
+                  authCubit.chooseLocation(remote: remoteLocations, onSite: onSiteLocations);
+                  String code= await authCubit.addLocationsAndRoles();
+                  if(code ==successfulCode){
+                    Navigator.of(context).pushNamed(mainLayout);
+                  }else{
+                    Fluttertoast.showToast(
+                      msg: "Network Error",
+                      toastLength: Toast.LENGTH_SHORT,
+                      gravity: ToastGravity.CENTER,
+                      timeInSecForIosWeb: 1,
+                      fontSize: 16.0,
+                    );
+                  }
+                }else if(remoteLocations.isNotEmpty && onSiteLocations.isEmpty){
+                  Fluttertoast.showToast(
+                    msg: "You have to choose at least one onsite Location",
+                    toastLength: Toast.LENGTH_SHORT,
+                    gravity: ToastGravity.CENTER,
+                    timeInSecForIosWeb: 1,
+                    fontSize: 16.0,
+                  );
+                }else if(remoteLocations.isEmpty && onSiteLocations.isNotEmpty){
+                  Fluttertoast.showToast(
+                    msg: "You have to choose at one remote Location",
+                    toastLength: Toast.LENGTH_SHORT,
+                    gravity: ToastGravity.CENTER,
+                    timeInSecForIosWeb: 1,
+                    fontSize: 16.0,
+                  );
+                }
+              },
               backgroundColor: buttonColor,
               child: const DefaultText(
                 text: 'Next',

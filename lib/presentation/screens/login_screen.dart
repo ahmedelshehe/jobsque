@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:jobsque/business_logic/auth/auth_cubit.dart';
 import 'package:jobsque/constants/colors.dart';
 import 'package:jobsque/constants/screens.dart';
 import 'package:jobsque/presentation/widgets/default_text_button.dart';
 import 'package:sizer/sizer.dart';
 
+import '../../constants/response_codes.dart';
 import '../widgets/default_material_button.dart';
 import '../widgets/default_password_field.dart';
 import '../widgets/default_svg.dart';
@@ -18,17 +21,19 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  late AuthCubit authCubit;
   late bool _isRememberMe;
-  late TextEditingController _usernameController;
+  late TextEditingController _emailController;
   late TextEditingController _passwordController;
   var formKey = GlobalKey<FormState>();
   late bool isButtonEnabled;
   @override
   void initState() {
+    authCubit=AuthCubit.get(context);
     _isRememberMe = false;
-    _usernameController = TextEditingController();
+    _emailController = TextEditingController();
     _passwordController = TextEditingController();
-    if (_usernameController.text.isEmpty && _passwordController.text.isEmpty) {
+    if (_emailController.text.isEmpty && _passwordController.text.isEmpty) {
       isButtonEnabled = false;
     } else {
       isButtonEnabled = true;
@@ -39,6 +44,32 @@ class _LoginScreenState extends State<LoginScreen> {
   _handleRememberMe() {
     _isRememberMe = !_isRememberMe;
     setState(() {});
+  }
+  void onLogin() async{
+    String response =
+    await authCubit.login(
+        _emailController.text,
+        _passwordController.text);
+    if (!context.mounted) return;
+    if(response == successfulCode){
+      Navigator.of(context).pushNamed(mainLayout);
+    }else if(response == failureCode){
+      Fluttertoast.showToast(
+        msg: "Wrong email or password",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.CENTER,
+        timeInSecForIosWeb: 1,
+        fontSize: 16.0,
+      );
+    }else{
+      Fluttertoast.showToast(
+        msg: "Network Error",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.CENTER,
+        timeInSecForIosWeb: 1,
+        fontSize: 16.0,
+      );
+    }
   }
 
   @override
@@ -97,9 +128,19 @@ class _LoginScreenState extends State<LoginScreen> {
                       Container(
                         margin: EdgeInsets.symmetric(horizontal: 7.w),
                         child: DefaultTextField(
-                            controller: _usernameController,
-                            hintText: 'Username',
+                            controller: _emailController,
+                            hintText: 'Email',
                             prefixIcon: const Icon(Icons.person_outlined),
+                            validator: (value) {
+                              String pattern =
+                                  r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
+                              RegExp regex = RegExp(pattern);
+                              if (!regex.hasMatch(value!)) {
+                                return 'Enter Valid Email';
+                              } else {
+                                return null;
+                              }
+                            },
                             onChanged: (value) {
                               setState(() {
                                 if (_passwordController.text.isNotEmpty) {
@@ -117,7 +158,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: PasswordField(
                           onChanged: (value) {
                             setState(() {
-                              if (_usernameController.text.isNotEmpty) {
+                              if (_emailController.text.isNotEmpty) {
                                 isButtonEnabled =
                                     value.isNotEmpty ? true : false;
                               }
@@ -191,7 +232,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           ],
                         ),
                         DefaultMaterialButton(
-                          onPressed: isButtonEnabled ? () {} : null,
+                          onPressed: isButtonEnabled ? () {
+                            onLogin();
+                          } : null,
                           backgroundColor: buttonColor,
                           child: DefaultText(
                             text: 'Login',

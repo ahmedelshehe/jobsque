@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:jobsque/constants/my_cache_keys.dart';
+import 'package:jobsque/data/local/my_cache.dart';
 import 'package:jobsque/presentation/screens/home_screens/home_screen.dart';
 import 'package:jobsque/presentation/screens/home_screens/notifications_screen.dart';
 import 'package:jobsque/presentation/screens/home_screens/search_job_screen.dart';
@@ -23,11 +25,21 @@ import 'package:jobsque/presentation/screens/saved_jobs_screens/saved_jobs_scree
 import 'package:jobsque/presentation/screens/success_screens/check_you_email_screen.dart';
 import 'package:jobsque/presentation/screens/success_screens/password_changed_screen.dart';
 import 'package:jobsque/presentation/screens/success_screens/successful_account_set_up_screen.dart';
+
 class AppRouter{
   late Widget startScreen;
   Route? onGenerateRoute(RouteSettings settings){
-    startScreen =const MainLayout();
-
+    bool isOnBoardingViewed =MyCache.getBoolean(key: MyCacheKeys.isOnBoardingViewed);
+    String token =MyCache.getString(key: MyCacheKeys.myToken);
+    if(isOnBoardingViewed){
+      if(token == ''){
+        startScreen =const LoginScreen();
+      }else{
+        startScreen =const MainLayout();
+      }
+    }else{
+      startScreen =const OnBoardingScreen();
+    }
     switch(settings.name){
       case screens.startScreen:
         return MaterialPageRoute(builder: (_)=>startScreen);
